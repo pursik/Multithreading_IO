@@ -1,8 +1,12 @@
 .vs/
+bin-release/
+bin-debug/
 **/x64/**/*.*
 **/obj/**/*.*
 **/bin/**/*.*
 **/bin/**/*
 *.suo
 *.user
+*.sln
+*.vcxproj
 launchSettings.json
