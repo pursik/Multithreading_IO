@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 		CommandStore commandStore;
 		if (!commandStore.Parse(argc, argv))
 		{
-		//	return 0;
+			return 0;
 		}
 		const auto task = TaskFactory::CreateMultiThreadedFileIOTask(commandStore);
 		task->Run();
