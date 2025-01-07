@@ -1,5 +1,5 @@
-# Multithreading_IO
-A console application using two threads for reading from and writing to a file. 
+# MultyThreadingIO
+A console application using two threads for reading from one and writing to an other file. 
 
 1. Install Conan 2.0.7: Make sure Conan 2.0.7 is installed. If not, you can install it using pip:
 ```

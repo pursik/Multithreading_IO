@@ -1,7 +1,7 @@
 from conan import ConanFile
 
-class BoostProgramOptionsExample(ConanFile):
-    name = "BoostProgramOptionsExample"
+class MultyThreadingIO(ConanFile):
+    name = "MultyThreadingIO"
     version = "1.0"
     settings = "os", "compiler", "build_type", "arch"
     requires = "boost/1.81.0"
