@@ -1,16 +1,7 @@
-#ifndef WRITER_H
-#define WRITER_H
+#pragma once
 
-#include "IWriter.h"
-#include "Sync.h"
-
-class IProcessing
-{
-public:
-	virtual ~IProcessing() = default;
-	virtual void Reading() = 0;
-	virtual void Writing() = 0;
-};
+#include "IProcessing.h"
+#include "SafeDataAccess.h"
 
 class Processing : public IProcessing
 {
@@ -44,4 +35,4 @@ public:
 		}
 	}
 };
-#endif
+

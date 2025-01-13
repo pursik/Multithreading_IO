@@ -1,11 +1,11 @@
-#ifndef BUFFER_STATE_H
-#define BUFFER_STATE_H
+#pragma once
 
-#include "IBufferStateWriter.h"
-#include "IBufferStateReader.h"
+#include "IStateSetter.h"
+#include "IStateGetter.h"
 #include <memory>
 
-class BufferState : public IBufferStateWriter, public IBufferStateReader
+
+class BufferState : public IStateSetter, public IStateGetter
 {
 public:
 	BufferState() {}
@@ -45,4 +45,3 @@ private:
 	std::atomic<bool> readingEnabled_ = false;
 };
 
-#endif

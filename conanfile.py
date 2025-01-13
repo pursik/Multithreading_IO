@@ -1,10 +1,10 @@
 from conan import ConanFile
 
-class MultyThreadingIO(ConanFile):
-    name = "MultyThreadingIO"
+class FileTransfer(ConanFile):
+    name = "FileTransfer"
     version = "1.0"
     settings = "os", "compiler", "build_type", "arch"
-    requires = "boost/1.81.0"
+    requires =  ["boost/1.81.0", "gtest/[>=1.11.0]"]
     generators = "CMakeDeps", "CMakeToolchain"
 
     def configure(self):

@@ -1,7 +1,7 @@
 #include "TaskFactory.h"
 #include "Commands.h"
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 	try
 	{
@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 		{
 			return 0;
 		}
-		const auto task = TaskFactory::CreateMultiThreadedFileIOTask(commandStore);
+		const auto task = TaskFactory::CreateTask(commandStore);
 		task->Run();
 	}
 	catch (const std::exception &e)

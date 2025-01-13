@@ -1,5 +1,4 @@
-#ifndef COMMAND_H
-#define COMMAND_H
+#pragma once
 
 #include <boost/program_options.hpp>
 #include <string>
@@ -12,6 +11,13 @@ namespace commands
 
 	constexpr auto DEST_CMD = "destination";
 	constexpr auto DEST_OPTION = "destination,d";
+
+	constexpr auto MODE_CMD = "mode";
+	constexpr auto MODE_OPTION = "mode,m";
+
+	constexpr auto mode_multi_thread = "multi_thread";
+	constexpr auto mode_multi_process = "multi_process";
+	constexpr auto mode_network = "network";
 }
 namespace
 {
@@ -24,9 +30,12 @@ class CommandStore
 public:
 	CommandStore()
 	{
-		description_.add_options()("help,h", "Help message.")(SOURCE_OPTION, po::value<std::string>(), "Input file name.")(DEST_OPTION, po::value<std::string>(), "Output file name.\n");
+		description_.add_options()("help,h", "Help message.")
+			(SOURCE_OPTION, po::value<std::string>(), "Input file name.")
+			(DEST_OPTION, po::value<std::string>(), "Output file name.\n")
+			(MODE_OPTION, po::value<std::string>()->default_value("multi_thread"), "Mode of operation: multi_thread, multi_process, network.");
 	}
-	virtual bool Parse(int argc, char *argv[])
+	virtual bool Parse(int argc, const char *argv[])
 	{
 		po::store(
 			po::command_line_parser(argc, argv)
@@ -68,4 +77,4 @@ private:
 	boost::program_options::options_description description_;
 	boost::program_options::variables_map commands_;
 };
-#endif
+

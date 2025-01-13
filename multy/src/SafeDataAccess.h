@@ -1,9 +1,7 @@
-#ifndef SYNC_H
-#define SYNC_H
-
+#pragma once
 #include "IWriter.h"
 #include "IReader.h"
-#include "IBufferStateReader.h"
+#include "IStateGetter.h"
 
 #include <mutex>
 #include <condition_variable>
@@ -17,10 +15,10 @@ private:
 	std::atomic<bool> running_ = true;
 	std::shared_ptr<IWriter> writer_;
 	std::shared_ptr<IReader> reader_;
-	std::shared_ptr<IBufferStateReader> bufferState_;
+	std::shared_ptr<IStateGetter> bufferState_;
 
 public:
-	SafeDataAccess(std::shared_ptr<IWriter> writer, std::shared_ptr<IReader> reader, std::shared_ptr<IBufferStateReader> state) :writer_(writer), reader_(reader), bufferState_(state) {}
+	SafeDataAccess(std::shared_ptr<IWriter> writer, std::shared_ptr<IReader> reader, std::shared_ptr<IStateGetter> state) :writer_(writer), reader_(reader), bufferState_(state) {}
 
 	void Write(std::span<char> data) override
 	{
@@ -54,4 +52,4 @@ public:
 		return running_;
 	}
 };
-#endif
+

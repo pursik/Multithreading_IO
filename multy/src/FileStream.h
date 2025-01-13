@@ -1,7 +1,7 @@
-#ifndef READER_H
-#define READER_H
+#pragma once
 
-#include "Buffer.h"
+#include "IReader.h"
+#include "IWriter.h"
 #include <fstream>
 #include <filesystem>
 
@@ -59,10 +59,6 @@ private:
 public:
 	static std::shared_ptr<IWriter> Create(std::string_view fileName)
 	{
-		if (std::filesystem::exists(fileName.data()))
-		{
-			throw std::runtime_error("Output file " + std::string(fileName) + " is already exist.");
-		}
 		auto instance = std::shared_ptr<OutputFileStream>(new OutputFileStream());
 		instance->stream_.open(fileName.data(), std::ios::binary);
 		if (!instance->stream_.is_open())
@@ -103,4 +99,4 @@ public:
 		return OutputFileStream::Create(fileName);
 	}
 };
-#endif
+

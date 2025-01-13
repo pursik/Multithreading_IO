@@ -1,32 +1,18 @@
-#ifndef BUFFER_H
-#define BUFFER_H
+#pragma once
 
-#include "IBufferStateWriter.h"
+#include "IBuffer.h"
+#include "IStateSetter.h"
 #include <vector>
 #include <memory>
 
-struct BaseBuffer
-{
-	virtual ~BaseBuffer() = default;
-	virtual char& operator[](size_t index) = 0;
-	virtual void Write(char item) = 0;
-	virtual size_t GetDataSize() const = 0;
-	virtual size_t GetHead() const = 0;
-	virtual void SetHead(size_t value) = 0;
-
-protected:
-	size_t head_ = 0;
-	size_t tail_ = 0;
-};
-
-class CircularBuffer : public BaseBuffer
+class CircularBuffer : public IBuffer
 {
 private:
 	std::vector<char> data_;
 	const size_t capacity_;
-	std::shared_ptr<IBufferStateWriter> state_;
+	std::shared_ptr<IStateSetter> state_;
 public:
-	CircularBuffer(size_t size, std::shared_ptr<IBufferStateWriter> state) : data_(size), capacity_(size), state_(state) {}
+	CircularBuffer(size_t size, std::shared_ptr<IStateSetter> state) : data_(size), capacity_(size), state_(state) {}
 	~CircularBuffer() = default;
 
 	char& operator[](size_t index) override
@@ -67,4 +53,4 @@ public:
 		}
 	}
 };
-#endif
+
