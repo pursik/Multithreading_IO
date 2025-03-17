@@ -1,13 +1,13 @@
 #pragma once
-#include "IWriter.h"
-#include "IReader.h"
+
 #include "IStateGetter.h"
+#include "IDataAccess.h"
 
 #include <mutex>
 #include <condition_variable>
 #include <functional>
 
-class SafeDataAccess : public IWriter, IReader
+class SafeDataAccess : public IDataAccess
 {
 private:
 	std::mutex mutex_;
@@ -37,19 +37,20 @@ public:
 		return reader_->Read();
 	}
 
-	void NotifyBufferNotFull()
+	void NotifyBufferNotFull() override
 	{
 		cv_.notify_all();
 	}
 
-	void Stop()
+	void Stop() override
 	{
 		running_ = false;
 	}
 
-	bool IsRunning()
+	bool IsRunning() override
 	{
 		return running_;
 	}
 };
+
 

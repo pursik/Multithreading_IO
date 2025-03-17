@@ -1,5 +1,7 @@
 #include "TaskFactory.h"
 #include "Commands.h"
+#include <iostream>
+#include <Windows.h>
 
 int main(int argc, const char *argv[])
 {

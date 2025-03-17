@@ -8,11 +8,25 @@
 class CircularBuffer : public IBuffer
 {
 private:
-	std::vector<char> data_;
+	char* data_;           // Raw buffer pointer from shared memory
+	std::vector<char> dataVec_;  // Used only in in-memory mode
 	const size_t capacity_;
 	std::shared_ptr<IStateSetter> state_;
+
 public:
-	CircularBuffer(size_t size, std::shared_ptr<IStateSetter> state) : data_(size), capacity_(size), state_(state) {}
+	CircularBuffer(size_t size, std::shared_ptr<IStateSetter> state, void* mapViewOfFile = nullptr) :
+		capacity_(size), state_(state)
+	{
+		if (mapViewOfFile == nullptr)
+		{
+			dataVec_.resize(size); // Ensure dataVec_ is properly resized
+			data_ = dataVec_.data(); // Update data_ to point to the resized vector
+		}
+		else
+		{
+			data_ = static_cast<char*>(mapViewOfFile);
+		}
+	}
 	~CircularBuffer() = default;
 
 	char& operator[](size_t index) override
@@ -24,14 +38,16 @@ public:
 	{
 		return head_ < tail_
 			? tail_ - head_
-			: data_.size() - head_ + tail_; // Handle wrap around
+			: capacity_ - head_ + tail_; // Handle wrap around
 	}
 
 	void Write(char item) override
 	{
 		data_[tail_] = item;
 		tail_ = (tail_ + 1) % capacity_;
+
 		state_->EnableReading();
+
 		if (tail_ == head_)
 		{
 			state_->DisableWriting();
