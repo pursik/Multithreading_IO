@@ -15,9 +15,15 @@ namespace commands
 	constexpr auto MODE_CMD = "mode";
 	constexpr auto MODE_OPTION = "mode,m";
 
+	constexpr auto PROCESS_ROLE_CMD = "role";
+	constexpr auto PROCESS_ROLE_OPTION = "role,r";
+
 	constexpr auto mode_multi_thread = "multi_thread";
 	constexpr auto mode_multi_process = "multi_process";
 	constexpr auto mode_network = "network";
+
+	constexpr auto server = "server";
+	constexpr auto client = "client";
 }
 namespace
 {
@@ -33,17 +39,18 @@ public:
 		description_.add_options()("help,h", "Help message.")
 			(SOURCE_OPTION, po::value<std::string>(), "Input file name.")
 			(DEST_OPTION, po::value<std::string>(), "Output file name.\n")
-			(MODE_OPTION, po::value<std::string>()->default_value("multi_thread"), "Mode of operation: multi_thread, multi_process, network.");
+			(MODE_OPTION, po::value<std::string>()->default_value("multi_thread"), "Mode of operation: multi_thread, multi_process, network.")
+			(PROCESS_ROLE_OPTION, po::value<std::string>(), "In multi-process systems, client or server.");
 	}
-	virtual bool Parse(int argc, const char *argv[])
+	virtual bool Parse(int argc, const char* argv[])
 	{
 		po::store(
 			po::command_line_parser(argc, argv)
-				.options(description_)
-				.style(
-					boost::program_options::command_line_style::unix_style |
-					boost::program_options::command_line_style::case_insensitive)
-				.run(),
+			.options(description_)
+			.style(
+				boost::program_options::command_line_style::unix_style |
+				boost::program_options::command_line_style::case_insensitive)
+			.run(),
 			commands_);
 		po::notify(commands_);
 
@@ -52,19 +59,15 @@ public:
 			std::cout << description_ << std::endl;
 			return false;
 		}
-		if (commands_.count(SOURCE_CMD) == 0 || commands_.count(DEST_CMD) == 0)
-		{
-			throw std::runtime_error("Error: Required parameters 'source' or 'dest' are missing.\n");
-		}
 		return true;
 	}
 
-	virtual const boost::program_options::variables_map &GetCommands()
+	virtual const boost::program_options::variables_map& GetCommands()
 	{
 		return commands_;
 	}
 
-	virtual std::string GetStringCommandOption(const std::string &command) const
+	virtual std::string GetStringCommandOption(const std::string& command) const
 	{
 		auto iter = commands_.find(command);
 		if (iter != commands_.end())

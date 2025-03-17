@@ -16,7 +16,6 @@ public:
 	std::span<char> Read() override
 	{
 		size_t dataSize = buffer_->GetDataSize();
-
 		chunk_.clear();
 		chunk_.resize(dataSize);
 		const auto head = buffer_->GetHead();

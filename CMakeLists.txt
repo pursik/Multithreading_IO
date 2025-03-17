@@ -20,7 +20,8 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 add_executable(FileTransfer
     "multy/main.cpp"
     "multy/src/MultiThreadTask.cpp"
-    "multy/src/TaskFactory.cpp" )
+    "multy/src/TaskFactory.cpp"
+    "multy/src/MultiProcessTask.cpp")
 
 # Link Boost libraries
 target_link_libraries(FileTransfer Boost::program_options)
@@ -33,7 +34,8 @@ include(GoogleTest)
 add_executable(test_FileTransfer 
 "multy/test/IntegrationTest.cpp" 
 "multy/src/MultiThreadTask.cpp"
-"multy/src/TaskFactory.cpp" )
+"multy/src/TaskFactory.cpp"
+"multy/src/MultiProcessTask.cpp")
 
 target_link_libraries(test_FileTransfer
     PRIVATE
