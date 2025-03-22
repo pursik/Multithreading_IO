@@ -15,6 +15,7 @@ public:
 	BufferReader(std::shared_ptr<IBuffer> buffer) : buffer_(buffer) {}
 	std::span<char> Read() override
 	{
+		std::cout << __FUNCTION__ << std::endl;
 		size_t dataSize = buffer_->GetDataSize();
 		chunk_.clear();
 		chunk_.resize(dataSize);

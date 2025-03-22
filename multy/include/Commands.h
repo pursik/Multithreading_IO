@@ -67,7 +67,7 @@ public:
 		return commands_;
 	}
 
-	virtual std::string GetStringCommandOption(const std::string& command) const
+	virtual std::string_view GetStringCommandOption(const std::string& command) const
 	{
 		auto iter = commands_.find(command);
 		if (iter != commands_.end())

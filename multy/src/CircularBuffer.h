@@ -4,7 +4,8 @@
 #include "IStateSetter.h"
 #include <vector>
 #include <memory>
-
+#include <iostream>
+#include <windows.h>
 class CircularBuffer : public IBuffer
 {
 private:
@@ -43,7 +44,9 @@ public:
 
 	void Write(char item) override
 	{
+		/*MessageBoxA(NULL, "Write", "Write", MB_OK);*/
 		data_[tail_] = item;
+		
 		tail_ = (tail_ + 1) % capacity_;
 
 		state_->EnableReading();
