@@ -36,6 +36,7 @@ public:
 		{
 			throw std::invalid_argument("Writer is not set.");
 		}
+		syncSharedDataAccess_->NotifyBufferNotFull();
 		bool isRunning = syncSharedDataAccess_->IsRunning();
 		while (isRunning)
 		{

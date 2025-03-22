@@ -2,9 +2,14 @@
 
 #include "IStateSetter.h"
 #include "IStateGetter.h"
+#include "Logger.h"
+
+#include <iostream>
 #include <memory>
-#include <windows.h>
-#include <stdexcept>
+#include <atomic>
+#include <boost/interprocess/sync/named_semaphore.hpp>
+
+namespace bip = boost::interprocess;
 
 class BufferState : public IStateSetter, public IStateGetter
 {
@@ -49,68 +54,66 @@ private:
 class InterProcessBufferState : public IStateSetter, public IStateGetter
 {
 public:
-	InterProcessBufferState()
-	{
-		hDataAvailableEvent_ = OpenEvent(EVENT_ALL_ACCESS, FALSE, "Global\\DataAvailableEvent");
-		if (hDataAvailableEvent_ == NULL)
-		{
-			hDataAvailableEvent_ = CreateEvent(NULL, FALSE, FALSE, "Global\\DataAvailableEvent");
-			if (hDataAvailableEvent_ == NULL)
-			{
-				throw std::runtime_error("Error: Could not open data available event.");
-			}
-		}
+	static constexpr auto dataAvailableSemaphoreName = "DataAvailableSemaphore";
+	static constexpr auto spaceAvailableSemaphoreName = "SpaceAvailableSemaphore";
 
-		hSpaceAvailableEvent_ = OpenEvent(EVENT_ALL_ACCESS, FALSE, "Global\\SpaceAvailableEvent");
-		if (hSpaceAvailableEvent_ == NULL)
-		{
-			hSpaceAvailableEvent_ = CreateEvent(NULL, FALSE, FALSE, "Global\\SpaceAvailableEvent");
-			if (hSpaceAvailableEvent_ == NULL)
-			{
-				throw std::runtime_error("Error: Could not open data space event.");
-			}
-		}
+	InterProcessBufferState(): logger_("InterProcessBufferState")
+	{
+		dataAvailableSemaphore_ = std::make_unique<bip::named_semaphore>(bip::open_or_create, dataAvailableSemaphoreName, 0);
+		spaceAvailableSemaphore_ = std::make_unique<bip::named_semaphore>(bip::open_or_create, spaceAvailableSemaphoreName, 0);
 	}
+
 	~InterProcessBufferState()
 	{
-		CloseHandle(hDataAvailableEvent_);
-		CloseHandle(hSpaceAvailableEvent_);
+		std::cout << __FUNCTION__ << "\n";
+		Cleaner();
 	}
 
+	static void Cleaner()
+	{
+		std::cout << __FUNCTION__ << "\n";
+		bip::named_semaphore::remove(dataAvailableSemaphoreName);
+		bip::named_semaphore::remove(spaceAvailableSemaphoreName);
+	}
 	void EnableWriting() override
 	{
-		SetEvent(hSpaceAvailableEvent_);
+		std::cout << "EnableWriting" << std::endl;
+		spaceAvailableSemaphore_->post();
 	}
 
 	void EnableReading() override
 	{
-		SetEvent(hDataAvailableEvent_);
+		std::cout << "EnableReading" << std::endl;
+		dataAvailableSemaphore_->post();
 	}
 
 	void DisableWriting() override
 	{
-		ResetEvent(hSpaceAvailableEvent_);
 	}
 
 	void DisableReading() override
 	{
-		ResetEvent(hDataAvailableEvent_);
 	}
 
 	bool IsWritingEnabled() override
 	{
-		const auto result = WaitForSingleObject(hSpaceAvailableEvent_, INFINITE);
-		return (result == WAIT_OBJECT_0);
+		std::cout << "IsWritingEnabled ?" << std::endl;
+		spaceAvailableSemaphore_->wait();
+		std::cout << "IsWritingEnabled true" << std::endl;
+		return true;
 	}
 
 	bool IsReadingEnabled() override
 	{
-		const auto result = WaitForSingleObject(hDataAvailableEvent_, INFINITE);
-		return (result == WAIT_OBJECT_0);
+		std::cout << "IsReadingEnabled ?" << std::endl;
+		dataAvailableSemaphore_->wait();
+		std::cout << "IsReadingEnabled true" << std::endl;
+		return true;
 	}
 
 private:
-	HANDLE hDataAvailableEvent_;
-	HANDLE hSpaceAvailableEvent_;
+	std::unique_ptr<bip::named_semaphore> dataAvailableSemaphore_;
+	std::unique_ptr<bip::named_semaphore> spaceAvailableSemaphore_;
+	Logger logger_;
 };
 
