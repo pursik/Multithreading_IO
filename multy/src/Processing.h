@@ -2,6 +2,7 @@
 
 #include "IProcessing.h"
 #include "IDataAccess.h"
+#include "Logger.h"
 
 class Processing : public IProcessing
 {
@@ -9,9 +10,13 @@ private:
 	std::shared_ptr<IDataAccess> syncSharedDataAccess_;
 	std::shared_ptr<IReader> reader_;
 	std::shared_ptr<IWriter> writer_;
-
+	Logger logger_;
 public:
-	Processing(std::shared_ptr<IDataAccess> syncSharedDataAccess, std::shared_ptr<IReader> reader, std::shared_ptr<IWriter> writer) : syncSharedDataAccess_(syncSharedDataAccess), reader_(reader), writer_(writer)
+	Processing(std::shared_ptr<IDataAccess> syncSharedDataAccess, std::shared_ptr<IReader> reader, std::shared_ptr<IWriter> writer)
+		: syncSharedDataAccess_(syncSharedDataAccess)
+		, reader_(reader)
+		, writer_(writer)
+		, logger_("Processing")
 	{
 	}
 
@@ -19,15 +24,25 @@ public:
 	{
 		if (reader_ == nullptr)
 		{
+			std::cout << "Reader is not set." << std::endl;
 			throw std::invalid_argument("Reader is not set.");
 		}
-		auto data = reader_->Read();
-		while (!data.empty())
+		try
 		{
-			syncSharedDataAccess_->Write({ data });
-			data = reader_->Read();
+			auto data = reader_->Read();
+			while (!data.empty())
+			{
+				syncSharedDataAccess_->Write({ data });
+				throw std::runtime_error("throw any exception code after complete of first memory block writing");
+				data = reader_->Read();
+			}
+			syncSharedDataAccess_->Stop(); // there is no more data to write into shared area
 		}
-		syncSharedDataAccess_->Stop(); // there is no more data to write into shared area
+		catch (std::runtime_error& e)
+		{
+			syncSharedDataAccess_->Stop(); // there is no ability to write into shared area
+			std::cerr << "Error: " << e.what() << std::endl;
+		}
 	}
 
 	void Writing()
@@ -36,12 +51,15 @@ public:
 		{
 			throw std::invalid_argument("Writer is not set.");
 		}
-		syncSharedDataAccess_->NotifyBufferNotFull();
 		bool isRunning = syncSharedDataAccess_->IsRunning();
 		while (isRunning)
 		{
-			writer_->Write(syncSharedDataAccess_->Read());
-			syncSharedDataAccess_->NotifyBufferNotFull();
+			const auto data = syncSharedDataAccess_->Read();
+			if(!data.empty())
+			{
+				//	throw std::runtime_error("throw any exception code after complete of first memory block reading");
+				writer_->Write(data);
+			}
 			isRunning = syncSharedDataAccess_->IsRunning();
 		}
 	}

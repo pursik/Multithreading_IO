@@ -34,12 +34,9 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		cv_.wait(lock, [&]()
 			{ return bufferState_->IsReadingEnabled(); });
-		return reader_->Read();
-	}
-
-	void NotifyBufferNotFull() override
-	{
+		auto data = reader_->Read();
 		cv_.notify_all();
+		return data;
 	}
 
 	void Stop() override

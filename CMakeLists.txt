@@ -21,7 +21,8 @@ add_executable(FileTransfer
     "multy/main.cpp"
     "multy/src/MultiThreadTask.cpp"
     "multy/src/TaskFactory.cpp"
-    "multy/src/MultiProcessTask.cpp")
+    "multy/src/MultiProcessTask.cpp"
+    "multy/src/SharedDataAccess.cpp")
 
 # Link Boost libraries
 target_link_libraries(FileTransfer Boost::program_options)
@@ -35,7 +36,7 @@ add_executable(test_FileTransfer
 "multy/test/IntegrationTest.cpp" 
 "multy/src/MultiThreadTask.cpp"
 "multy/src/TaskFactory.cpp"
-"multy/src/MultiProcessTask.cpp")
+"multy/src/MultiProcessTask.cpp" "multy/src/SharedDataAccess.cpp")
 
 target_link_libraries(test_FileTransfer
     PRIVATE
