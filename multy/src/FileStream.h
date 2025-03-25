@@ -2,6 +2,7 @@
 
 #include "IReader.h"
 #include "IWriter.h"
+#include "Logger.h"
 #include <fstream>
 #include <filesystem>
 
@@ -10,9 +11,13 @@ class InputFileStream : public IReader
 private:
 	std::ifstream stream_;
 	std::vector<char> chunkBuffer;
+	Logger logger_;
 
 	// Private constructor prevents direct construction
-	InputFileStream(size_t chunkSize) : chunkBuffer(chunkSize) {}
+	InputFileStream(size_t chunkSize)
+		: chunkBuffer(chunkSize)
+		, logger_("InputFileStream")
+	{}
 
 public:
 	static std::shared_ptr<IReader> Create(std::string_view fileName, size_t chunkSize)
@@ -36,6 +41,7 @@ public:
 
 	std::span<char> Read() override
 	{
+		std::cout << __FUNCTION__ << std::endl;
 		if ((stream_.read(chunkBuffer.data(), chunkBuffer.size()) /*false If the file reaches the end*/ || stream_.gcount() > 0 /*actually read amount*/))
 		{
 			const auto bytesRead = stream_.gcount(); /*returns the number of bytes that were actually read. <=dataSize */
@@ -43,7 +49,7 @@ public:
 			{
 				chunkBuffer.resize(bytesRead);
 			}
-			return {chunkBuffer};
+			return { chunkBuffer };
 		}
 		return {};
 	}
@@ -53,8 +59,11 @@ class OutputFileStream : public IWriter
 {
 private:
 	std::ofstream stream_;
+	Logger logger_;
 	// Private constructor prevents direct construction
-	OutputFileStream() = default;
+	OutputFileStream()
+		: logger_("OutputFileStream")
+	{}
 
 public:
 	static std::shared_ptr<IWriter> Create(std::string_view fileName)
@@ -78,6 +87,7 @@ public:
 
 	void Write(std::span<char> data) override
 	{
+		std::cout << __FUNCTION__ << std::endl;
 		if (stream_.is_open() && !data.empty())
 		{
 			stream_.write(data.data(), data.size());

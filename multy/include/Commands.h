@@ -15,15 +15,12 @@ namespace commands
 	constexpr auto MODE_CMD = "mode";
 	constexpr auto MODE_OPTION = "mode,m";
 
-	constexpr auto PROCESS_ROLE_CMD = "role";
-	constexpr auto PROCESS_ROLE_OPTION = "role,r";
+	constexpr auto SHARED_MEMORY_CMD = "shared_memory";
+	constexpr auto SHARED_MEMORY_OPTION = "shared_memory,r";
 
 	constexpr auto mode_multi_thread = "multi_thread";
 	constexpr auto mode_multi_process = "multi_process";
 	constexpr auto mode_network = "network";
-
-	constexpr auto server = "server";
-	constexpr auto client = "client";
 }
 namespace
 {
@@ -40,7 +37,7 @@ public:
 			(SOURCE_OPTION, po::value<std::string>(), "Input file name.")
 			(DEST_OPTION, po::value<std::string>(), "Output file name.\n")
 			(MODE_OPTION, po::value<std::string>()->default_value("multi_thread"), "Mode of operation: multi_thread, multi_process, network.")
-			(PROCESS_ROLE_OPTION, po::value<std::string>(), "In multi-process systems, client or server.");
+			(SHARED_MEMORY_OPTION, po::value<std::string>(), "In multi-process systems, shared memory name.");
 	}
 	virtual bool Parse(int argc, const char* argv[])
 	{

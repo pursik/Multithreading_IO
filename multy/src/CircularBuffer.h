@@ -44,7 +44,6 @@ public:
 
 	void Write(char item) override
 	{
-		/*MessageBoxA(NULL, "Write", "Write", MB_OK);*/
 		data_[tail_] = item;
 		
 		tail_ = (tail_ + 1) % capacity_;
