@@ -21,7 +21,6 @@ class SharedDataAccess : public IDataAccess
 private:
 	std::shared_ptr<IDataAccess> handler_;
 
-	std::unique_ptr<bip::named_mutex> namedMutex_;
 	std::unique_ptr<bip::named_semaphore> stopSemaphore_;
 	std::unique_ptr<bip::named_semaphore> dataAvailableSemaphore_;
 	std::unique_ptr<bip::named_semaphore> spaceAvailableSemaphore_;

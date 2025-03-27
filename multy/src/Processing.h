@@ -24,7 +24,6 @@ public:
 	{
 		if (reader_ == nullptr)
 		{
-			std::cout << "Reader is not set." << std::endl;
 			throw std::invalid_argument("Reader is not set.");
 		}
 		try
@@ -33,7 +32,7 @@ public:
 			while (!data.empty())
 			{
 				syncSharedDataAccess_->Write({ data });
-				throw std::runtime_error("throw any exception code after complete of first memory block writing");
+				//	throw std::runtime_error("throw any exception code after complete of first memory block writing");
 				data = reader_->Read();
 			}
 			syncSharedDataAccess_->Stop(); // there is no more data to write into shared area
@@ -51,16 +50,22 @@ public:
 		{
 			throw std::invalid_argument("Writer is not set.");
 		}
-		bool isRunning = syncSharedDataAccess_->IsRunning();
-		while (isRunning)
+		try
 		{
-			const auto data = syncSharedDataAccess_->Read();
-			if(!data.empty())
+			while (syncSharedDataAccess_->IsRunning())
 			{
-				//	throw std::runtime_error("throw any exception code after complete of first memory block reading");
-				writer_->Write(data);
+				const auto data = syncSharedDataAccess_->Read();
+				if (!data.empty())
+				{
+					//throw std::runtime_error("throw any exception code after complete of first memory block reading");
+					writer_->Write(data);
+				}
 			}
-			isRunning = syncSharedDataAccess_->IsRunning();
+		}
+		catch (std::runtime_error& e)
+		{
+			syncSharedDataAccess_->Stop(); // there is no ability to write into shared area
+			std::cerr << "Error: " << e.what() << std::endl;
 		}
 	}
 };
