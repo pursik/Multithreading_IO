@@ -1,11 +1,10 @@
 #include "TaskFactory.h"
-#include "Commands.h"
+#include "CommandFactory.h"
 
 #include <iostream>
 #include <fstream>
 #include <filesystem>
 #include <random>
-#include <vector>
 #include <gtest/gtest.h>
 
 namespace
@@ -88,17 +87,12 @@ namespace
 		const char* argv[] = { "progname", "-s", input.GetPath().data(), "-d", output.GetPath().data() };
 		int argc = sizeof(argv) / sizeof(char*);
 
-		CommandStore commandStore;
-		if (!commandStore.Parse(argc, argv))
-		{
-			return;
-		}
+		const auto commandStore = CommandFactory::Create(argc, argv);
 
 		auto startTime = std::chrono::high_resolution_clock::now();
 		for (auto i = 0; i < repeat; ++i)
 		{
-			const auto task = TaskFactory::CreateTask(commandStore);
-			task->Run();
+			TaskFactory::Run(commandStore);
 		}
 
 		auto endtime = std::chrono::high_resolution_clock::now();

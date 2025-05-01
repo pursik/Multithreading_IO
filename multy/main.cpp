@@ -1,19 +1,13 @@
 #include "TaskFactory.h"
-#include "Commands.h"
+#include "CommandFactory.h"
 #include <iostream>
-#include <Windows.h>
 
 int main(int argc, const char *argv[])
 {
 	try
 	{
-		CommandStore commandStore;
-		if (!commandStore.Parse(argc, argv))
-		{
-			return 0;
-		}
-		const auto task = TaskFactory::CreateTask(commandStore);
-		task->Run();
+		const auto command = CommandFactory::Create(argc, argv);
+		TaskFactory::Run(command);
 	}
 	catch (const std::exception &e)
 	{

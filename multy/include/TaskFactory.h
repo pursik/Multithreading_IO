@@ -1,9 +1,5 @@
-#include "ITask.h"
 #include <memory>
-
-class CommandStore;
-class MultiThreadTask;
-
+#include "Config.h"
 // Factory for creating task objects
 class TaskFactory
 {
@@ -14,5 +10,5 @@ public:
 	TaskFactory(TaskFactory&&) = delete;
 	TaskFactory& operator=(TaskFactory&&) = delete;
 
-	static std::shared_ptr<ITask> CreateTask(CommandStore& commandStore);
+	static void Run(const std::optional<config::SCommand>& command);
 };
