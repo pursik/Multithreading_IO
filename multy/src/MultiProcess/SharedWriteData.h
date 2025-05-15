@@ -59,7 +59,7 @@ public:
 			{
 				throw std::runtime_error("Failed to map shared memory region");
 			}
-			std::cerr << __FUNCTION__ << " region: " << region_.get_size() << std::endl;
+			std::cout << __FUNCTION__ << " region: " << region_.get_size() << std::endl;
 			data_ = new (region_.get_address()) DataBuffer(data); // Placement new on the mapped region's address
 		}
 		catch (const std::exception& e)

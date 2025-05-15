@@ -2,6 +2,7 @@
 
 class IReader;
 class IWriter;
+class IEncrypt;
 #include <string_view>
 #include <memory>
 /**
@@ -21,9 +22,10 @@ public:
 	/**
   * @brief Creates an FileNameSegmentReader instance.
   * @param fileName Name of the file to read from
+  * @param encryptor Shared pointer to an existing IEncryptor instance to be wrapped.
   * @return Shared pointer to the created FileNameSegmentReader instance
   */
-	static std::shared_ptr<IReader> CreateFileNameSegmentReader(const std::string& fileName);
+	static std::shared_ptr<IReader> CreateFileNameSegmentReader(std::string_view fileName, std::shared_ptr<IEncrypt> encryptor);
 
 	/**
 	 * @brief Creates a segmented FileDataSegmentReader instance.
@@ -32,9 +34,10 @@ public:
 	 * The segmented reader allows reading specific portions of data from the original reader.
 	 *
 	 * @param reader Shared pointer to an existing IReader instance to be wrapped.
+	 * @param encryptor Shared pointer to an existing IEncryptor instance to be wrapped.
 	 * @return Shared pointer to the created segmented FileDataReader instance.
 	 */
-	static std::shared_ptr<IReader> CreateFileDataSegmentReader(std::shared_ptr<IReader> reader);
+	static std::shared_ptr<IReader> CreateFileDataSegmentReader(std::shared_ptr<IReader> reader, std::shared_ptr<IEncrypt> encryptor);
 
 	/**
   * @brief Creates an FileDataWriter instance.

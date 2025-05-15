@@ -1,11 +1,16 @@
 #include "TaskFactory.h"
 #include "CommandFactory.h"
+#include "Encryption.h"
 
 #include <iostream>
 #include <fstream>
 #include <filesystem>
 #include <random>
+#include <array>
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
+#include <boost/process.hpp>
+#include <thread>
 
 namespace
 {
@@ -38,16 +43,20 @@ namespace
 			return filePath_;
 		}
 
+		const std::filesystem::path GetFullPath() const
+		{
+			return std::filesystem::absolute(filePath_.data());
+		}
+
 	private:
 		const std::string_view filePath_;
 	};
+	constexpr auto DefaultChunkSize = 1024U * 1024U;//1 MB
+	constexpr auto DefaultCountOfChunk = 100U;
 
-	void Create100mbFile(std::string_view fileNmae)
+	void CreateFile(std::string_view fileNmae, size_t chunkSize = DefaultChunkSize, size_t countOfChunk = DefaultCountOfChunk)
 	{
 		std::ofstream outputFile(fileNmae.data(), std::ios::binary);
-		constexpr auto chunkSize = 1024U * 1024U;//1 MB
-		constexpr auto countOfChunk = 100U;
-
 		if (!outputFile)
 		{
 			std::cerr << "Failed to create file." << std::endl;
@@ -60,10 +69,9 @@ namespace
 		std::random_device random;//is used to initialize the internal state of std::mt19937
 		std::mt19937 engine(random()/*Generates a random integer */);//generates a long sequence of pseudo-random numbers. 
 
-		// Generate and write 100 pieces of 1 MB random data
 		for (int i = 0; i < countOfChunk; ++i)
 		{
-			// Generate 1MB of random data
+			// Generate  random data
 			std::generate(chunk.begin(), chunk.end(), [&]() { return static_cast<char>(dist(engine)); });
 
 			// Write the data to file
@@ -75,28 +83,88 @@ namespace
 			}
 		}
 	}
-
-	TEST(PerformanceTest, MultiThread100MbFileTransferTest)
-	{
-		constexpr auto repeat = 10U;
-		ScopedFileRemover input(inputFileName.data());
-		ScopedFileRemover output(outputFileName.data());
-
-		Create100mbFile(input.GetPath());
-
-		const char* argv[] = { "progname", "-s", input.GetPath().data(), "-d", output.GetPath().data() };
-		int argc = sizeof(argv) / sizeof(char*);
-
-		const auto commandStore = CommandFactory::Create(argc, argv);
-
-		auto startTime = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < repeat; ++i)
-		{
-			TaskFactory::Run(commandStore);
-		}
-
-		auto endtime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double> elapsed = (endtime - startTime)/ repeat;
-		std::cout << "elapsed time: " << elapsed.count() << " seconds" << std::endl;
-	}
 }
+TEST(PerformanceTest, MultiThread100MbFileTransferTest)
+{
+	constexpr auto repeat = 10U;
+	ScopedFileRemover input(inputFileName.data());
+	ScopedFileRemover output(outputFileName.data());
+
+	CreateFile(input.GetPath());
+
+	const char* argv[] = { "progname", "-s", input.GetPath().data(), "-d", output.GetPath().data() };
+	int argc = sizeof(argv) / sizeof(char*);
+
+	const auto commandStore = CommandFactory::Create(argc, argv);
+
+	auto startTime = std::chrono::high_resolution_clock::now();
+	for (auto i = 0; i < repeat; ++i)
+	{
+		TaskFactory::Run(commandStore);
+	}
+
+	auto endtime = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> elapsed = (endtime - startTime) / repeat;
+	std::cout << "elapsed time: " << elapsed.count() << " seconds" << std::endl;
+}
+
+TEST(Encryption, EncryptDecryptTest)
+{
+	std::vector<char> inputData = { '1', '2', '3', '4', '5' };
+	std::vector<char> ciphr = { '0', '0', '0', '0', '0' };
+	std::vector<char> inFromOut = { '9', '9', '9', '9', '9' };
+	Encryption test;
+	test.Encrypt(inputData, ciphr);
+	test.Decrypt(inFromOut, ciphr, reinterpret_cast<CryptoPP::byte*>(test.GetIV().data()));
+	EXPECT_EQ(inputData, inFromOut);
+}
+
+TEST(Networking, ServerClientInteractionTest)
+{
+	static const std::string_view fileName = "input.bin";
+	ScopedFileRemover input(fileName.data());
+	CreateFile(input.GetPath(), 20, 2);
+
+	boost::process::ipstream is_stream_server;
+	boost::process::ipstream is_stream_client;
+
+	boost::process::child serverProcess("FileTransfer.exe -m network  -n server",
+		boost::process::std_out > is_stream_server);
+
+	EXPECT_EQ(serverProcess.running(), true);
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	boost::process::child clientProcess("FileTransfer.exe -s "+ input.GetFullPath().string() + " -m network -n client",
+		boost::process::std_out > is_stream_client);
+
+	EXPECT_EQ(clientProcess.running(), true);
+	clientProcess.wait();
+	EXPECT_EQ(clientProcess.exit_code(), 0);
+
+	EXPECT_EQ(serverProcess.running(), true);
+	serverProcess.terminate();
+	serverProcess.wait();
+
+	std::ostringstream client_out;
+	client_out << is_stream_client.rdbuf();
+	const auto client_out_string = client_out.str();
+
+	std::ostringstream server_out;
+	server_out << is_stream_server.rdbuf();
+	const auto server_out_string = server_out.str();
+
+	EXPECT_THAT(client_out_string, ::testing::HasSubstr("Connected to server"));
+	EXPECT_THAT(client_out_string, ::testing::HasSubstr(fileName));
+	EXPECT_THAT(server_out_string, ::testing::HasSubstr("Accepted new connection"));
+	EXPECT_THAT(client_out_string, ::testing::HasSubstr("TCPClient::Write"));
+	EXPECT_THAT(client_out_string, ::testing::HasSubstr("Encryption successful!"));
+	EXPECT_THAT(server_out_string, ::testing::HasSubstr(fileName));
+	EXPECT_THAT(server_out_string, ::testing::HasSubstr("Message received from client"));
+	EXPECT_THAT(server_out_string, ::testing::HasSubstr("Decryption successful!"));
+	EXPECT_THAT(server_out_string, ::testing::HasSubstr("Client disconnected"));
+
+	const auto resultFileName = std::filesystem::current_path() / "client_1" / fileName;
+	EXPECT_EQ(std::filesystem::exists(resultFileName), true);
+}
+

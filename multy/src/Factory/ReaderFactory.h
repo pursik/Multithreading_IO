@@ -10,6 +10,7 @@
 
 #include "../Threads/SyncWriteDataAccess.h"
 #include "../Network/TCPClient.h"
+#include "../common/Encryption.h"
 
 // Factory for creating of reading from file and writing to buffer or socket task objects
 class ReaderFactory
@@ -47,13 +48,14 @@ public:
 		{
 			std::vector<std::shared_ptr<ITask>> tasks;
 			const auto portAsString = std::to_string(command.port);
-
-			for (const auto& source : command.sources.value())
+			
+			for (auto& source : *command.sources)
 			{
+				const auto encryptor = std::make_shared<Encryption>();
+				const auto nameSegmentReader = FileOperationFactory::CreateFileNameSegmentReader(source, encryptor);
+				const auto dataSegmentReader = FileOperationFactory::CreateFileDataSegmentReader(
+					FileOperationFactory::CreateFileDataReader(source), encryptor);
 				const auto writer = std::make_shared<TCPClient>(command.serverName, portAsString);
-				const auto nameSegmentReader = FileOperationFactory::CreateFileNameSegmentReader(source);
-				const auto dataSegmentReader = FileOperationFactory::CreateFileDataSegmentReader(FileOperationFactory::CreateFileDataReader(source));
-
 				const auto nameTransferTask = std::make_shared<FileNameTransferTask>(writer, nameSegmentReader);
 				const auto dataTransferTask = std::make_shared<FileDataTransferTask>(writer, dataSegmentReader);
 

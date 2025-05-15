@@ -6,9 +6,9 @@
 #include "../FileStream/FileNameSegmentReader.h"
 #include "../FileStream/FileDataSegmentReader.h"
 
-std::shared_ptr<IReader> FileOperationFactory::CreateFileNameSegmentReader(const std::string& fileName)
+std::shared_ptr<IReader> FileOperationFactory::CreateFileNameSegmentReader(std::string_view fileName, std::shared_ptr<IEncrypt> encryptor)
 {
-	return FileNameSegmentReader::Create(fileName);
+	return FileNameSegmentReader::Create(fileName, encryptor);
 }
 
 std::shared_ptr<IReader> FileOperationFactory::CreateFileDataReader(std::string_view fileName)
@@ -21,8 +21,8 @@ std::shared_ptr<IWriter> FileOperationFactory::CreateFileDataWriter(std::string_
 	return FileDataWriter::Create(std::string(fileName), subFolderName);
 }
 
-std::shared_ptr<IReader> FileOperationFactory::CreateFileDataSegmentReader(std::shared_ptr<IReader> reader)
+std::shared_ptr<IReader> FileOperationFactory::CreateFileDataSegmentReader(std::shared_ptr<IReader> reader, std::shared_ptr<IEncrypt> encryptor)
 {
-	return FileDataSegmentReader::Create(reader);
+	return FileDataSegmentReader::Create(reader, encryptor);
 }
 

@@ -2,7 +2,8 @@
 
 #include "../common/IReader.h"
 #include "../common/Logger.h"
-#include "../common/DataType.h"
+#include "../common/Serializer.h"
+
 #include <fstream>
 #include <filesystem>
 
@@ -15,29 +16,17 @@ class FileDataSegmentReader : public IReader
 private:
 	Logger logger_; ///< Logger instance
 	std::shared_ptr<IReader> reader_; ///< Reader to read data from file
-	static constexpr uint8_t header = static_cast<uint8_t>(DataType::Type_File_Data);
-	std::vector<char> buffer_; ///< Buffer to store the header and file data.
+	Serializer serializer_;///< Serializer to encrypt data
+
 	/**
   * @brief Private constructor to prevent direct construction.
   * @param reader file data reader
   */
-	FileDataSegmentReader(std::shared_ptr<IReader> reader)
-		:reader_(std::move(reader)), logger_("FileDataSegmentReader")
+	FileDataSegmentReader(std::shared_ptr<IReader> reader, std::shared_ptr<IEncrypt> encryptor):
+		reader_(std::move(reader)), 
+		logger_("FileDataSegmentReader"), 
+		serializer_(std::move(encryptor), DataType::Type_File_Data)
 	{}
-
-	void ToByteArray(std::span<char> data)
-	{
-		if (!data.empty())
-		{
-			buffer_.reserve(1 + data.size());
-
-			// Add header to the buffer
-			buffer_.push_back(header);
-
-			// Add the content of the file data
-			buffer_.insert(buffer_.end(), data.begin(), data.end());
-		}
-	}
 public:
 	/**
   * @brief Creates an FileDataSegmentReader instance.
@@ -46,9 +35,9 @@ public:
   * @return Shared pointer to the created FileDataSegmentReader instance
   * @throws std::runtime_error if the file cannot be opened
   */
-	static std::shared_ptr<IReader> Create(std::shared_ptr<IReader> reader)
+	static std::shared_ptr<IReader> Create(std::shared_ptr<IReader> reader, std::shared_ptr<IEncrypt> encryptor)
 	{
-		return std::shared_ptr<FileDataSegmentReader>(new FileDataSegmentReader(std::move(reader)));
+		return std::shared_ptr<FileDataSegmentReader>(new FileDataSegmentReader(std::move(reader), std::move(encryptor)));
 	}
 
 	/**
@@ -57,9 +46,7 @@ public:
   */
 	std::span<char> Read() override
 	{
-		buffer_.clear(); // Clear the buffer before use to avoid appending to old data
-		ToByteArray(reader_->Read());
-		return { buffer_.data(), buffer_.size() };
+		return serializer_.Pack(reader_->Read());
 	}
 };
 

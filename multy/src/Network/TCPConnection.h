@@ -55,8 +55,7 @@ public:
 			{
 				if (!error)
 				{
-					std::cout << "Message received from client " << self->ID_ << ": "
-						<< std::string(self->buffer_.data_.data(), length) << "\n";
+					std::cout << "Message received from client " << self->ID_ << "\n";
 
 					// Process the chunk of data
 					self->fileWriter_->Write({ self->buffer_.data_.data(), length });

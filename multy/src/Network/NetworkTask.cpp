@@ -1,4 +1,5 @@
 #include "NetworkTask.h"
+#include "Encryption.h"
 #include "../Factory/ReaderFactory.h"
 #include "../Factory/WriterFactory.h"
 

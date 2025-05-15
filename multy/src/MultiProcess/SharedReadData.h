@@ -59,7 +59,7 @@ public:
 				throw std::runtime_error("Failed to map shared memory region");
 			}
 			data_ = reinterpret_cast<DataBuffer*>(region_.get_address());
-			std::cerr << __FUNCTION__ << " region: " << region_.get_size() << std::endl;
+			std::cout << __FUNCTION__ << " region: " << region_.get_size() << std::endl;
 			if (region_.get_size())
 			{
 				return { data_->data_.data(), region_.get_size() };

@@ -69,11 +69,6 @@ public:
 			std::cerr << "Cannot send data, not connected to server.\n";
 			return;
 		}
-		/*std::size_t copy_size = std::min(data.size(), buffer_.size());*/ // Ensure we don't exceed the buffer size
-
-		/*std::cout << __FUNCTION__ << " copy_size: " << copy_size << std::endl;*/
-
-		/*std::copy_n(data.begin(), copy_size, buffer_.begin());*/
 		// Send the data to the server asynchronously
 		// The lambda function handles the completion of the write operation
 		if (!socket_.is_open()) {

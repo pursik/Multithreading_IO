@@ -43,7 +43,7 @@ public:
 		{
 			if constexpr (sizeof...(args) == 1)
 			{
-				return std::make_shared<TCPServer>(command.port, std::forward<Args>(args)...);
+				return std::make_shared<TCPServer>(std::forward<Args>(args)..., command.port, std::make_shared<Encryption>());
 			}
 		}
 

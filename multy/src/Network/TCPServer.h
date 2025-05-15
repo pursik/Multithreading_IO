@@ -1,7 +1,7 @@
 #pragma once
 
 #include "TCPConnection.h"
-#include "FileWriter.h"
+#include "DataHandler.h"
 #include "../common/Logger.h"
 #include "../common/ITask.h"
 
@@ -23,17 +23,18 @@ public:
 	 * @brief Constructs a TCPServer object.
 	 * @param io_context The io_context object used for asynchronous operations.
 	 */
-	explicit TCPServer(uint64_t port, boost::asio::io_context& io_context)
+	explicit TCPServer(boost::asio::io_context& io_context, uint64_t port, std::shared_ptr<IEncrypt> encryptor)
 		: logger_("TCPServer")
 		, io_context_(io_context)
-		, acceptor_(io_context, tcp::endpoint(tcp::v4(), port))  // Listen on port 13
+		, acceptor_(io_context, tcp::endpoint(tcp::v4(), port))
+		, encryptor_(std::move(encryptor))
 	{
 	}
 	void Run() override
 	{
-		// Create a new TCPConnection instance
 		++current_id_;
-		auto client_connection = TCPConnection::Create(io_context_, current_id_, FileWriter::Create(current_id_));// Create a new TCPConnection instance
+		auto client_connection =
+			TCPConnection::Create(io_context_, current_id_, DataHandler::Create(current_id_, encryptor_));
 
 		// Begin asynchronously accepting new connections
 		acceptor_.async_accept(
@@ -60,6 +61,7 @@ private:
 	Logger logger_; ///< Logger instance for logging
 	size_t current_id_{ 0 };
 	std::vector<TCPConnection::pointer> client_connections_; // Track active client connection
+	std::shared_ptr<IEncrypt> encryptor_; ///< Pointer to the encryption object
 };
 
 

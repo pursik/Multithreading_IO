@@ -15,6 +15,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/multy/include)
 
 find_package(GTest REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(cryptopp REQUIRED)
 
 # Add the executable for the console application
 add_executable(FileTransfer
@@ -24,11 +25,12 @@ add_executable(FileTransfer
     "multy/src/Network/NetworkTask.cpp"
     "multy/src/Factory/TaskFactory.cpp" 
     "multy/src/Factory/CommandFactory.cpp" 
-    "multy/src/Factory/FileStreamFactory.cpp" 
+    "multy/src/Factory/FileStreamFactory.cpp"
+    "multy/src/Network/Encryption.cpp"
     )
 
 # Link Boost libraries
-target_link_libraries(FileTransfer Boost::program_options)
+target_link_libraries(FileTransfer Boost::program_options cryptopp::cryptopp)
 
 
 # Enable testing and include the GoogleTest module
@@ -43,12 +45,15 @@ add_executable(test_FileTransfer
 "multy/src/Factory/TaskFactory.cpp"
 "multy/src/Factory/CommandFactory.cpp" 
 "multy/src/Factory/FileStreamFactory.cpp" 
+"multy/src/Network/Encryption.cpp"
 )
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/multy/src/common)
 target_link_libraries(test_FileTransfer
     PRIVATE
     GTest::gmock
     GTest::gtest_main
     Boost::program_options
+    cryptopp::cryptopp
+    Boost::filesystem
 )
 gtest_discover_tests(test_FileTransfer)
